@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0710" />
+  <title>Hellhounds — Sistema de Parcerias</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <main id="loginView" class="login-shell">
+    <section class="hero-panel">
+      <div class="brand-line">
+        <div class="wolf-mark">🐺</div>
+        <div>
+          <span class="eyebrow">HELLHOUNDS</span>
+          <h1>SISTEMA DE<br><span>PARCERIAS</span></h1>
+        </div>
+      </div>
+
+      <p class="hero-copy">
+        Controle rápido de contatos, canais Dark, senhas e serviços das organizações parceiras.
+      </p>
+
+      <div class="feature-row">
+        <article><b>⚡</b><span>Consulta rápida</span></article>
+        <article><b>📋</b><span>Copiar com um clique</span></article>
+        <article><b>🔄</b><span>Atualização compartilhada</span></article>
+      </div>
+    </section>
+
+    <section class="login-card">
+      <div class="lock-icon">🔐</div>
+      <p class="eyebrow">ACESSO RESTRITO</p>
+      <h2>Sistema Interno</h2>
+      <p class="muted">Entre com seu ID e senha para acessar o painel.</p>
+
+      <form id="loginForm">
+        <label>ID / PASSAPORTE
+          <input id="loginId" type="text" placeholder="Ex.: 1234" required />
+        </label>
+        <label>SENHA
+          <div class="password-wrap">
+            <input id="loginPassword" type="password" placeholder="••••••••" required />
+            <button id="togglePassword" type="button" class="icon-btn" aria-label="Mostrar senha">👁️</button>
+          </div>
+        </label>
+        <button class="primary-btn" type="submit">Acessar Sistema</button>
+      </form>
+
+      <p class="login-note">Acesso de demonstração: qualquer ID e senha não vazios.</p>
+    </section>
+  </main>
+
+  <main id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="wolf-mark small">🐺</div>
+        <div><strong>HELLHOUNDS</strong><span>Central Interna</span></div>
+      </div>
+
+      <nav>
+        <button class="nav-item active" data-section="dashboard">⌂ <span>Visão geral</span></button>
+        <button class="nav-item" data-section="parcerias">🤝 <span>Parcerias</span></button>
+        <button class="nav-item" data-section="avisos">📢 <span>Avisos</span></button>
+      </nav>
+
+      <div class="side-bottom">
+        <div class="sync-box">
+          <span id="syncDot" class="sync-dot"></span>
+          <div><b id="syncLabel">Modo local</b><small id="syncDetail">Dados salvos neste navegador</small></div>
+        </div>
+        <button id="logoutBtn" class="ghost-btn">Sair</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <header class="topbar">
+        <button id="menuBtn" class="menu-btn">☰</button>
+        <div>
+          <p class="eyebrow">PAINEL HELLHOUNDS</p>
+          <h2 id="pageTitle">Visão geral</h2>
+        </div>
+        <div class="user-pill">🐺 <span id="userIdLabel">Membro</span></div>
+      </header>
+
+      <section id="dashboardSection" class="page-section">
+        <div class="welcome-card">
+          <div>
+            <p class="eyebrow">CENTRAL OPERACIONAL</p>
+            <h3>Bem-vindo ao sistema Hellhounds.</h3>
+            <p>Consulte e atualize as informações das organizações parceiras.</p>
+          </div>
+          <button class="primary-btn fit" data-go="parcerias">Abrir parcerias</button>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span>🤝</span><div><b id="statTotal">0</b><small>Parcerias ativas</small></div></article>
+          <article class="stat-card"><span>🔫</span><div><b id="statArmas">0</b><small>Fornecedores de armas</small></div></article>
+          <article class="stat-card"><span>📞</span><div><b id="statContatos">0</b><small>Contatos disponíveis</small></div></article>
+          <article class="stat-card"><span>🕒</span><div><b id="statUpdate">Agora</b><small>Última atualização</small></div></article>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">RESUMO</p><h3>Parcerias recentes</h3></div>
+            <button class="text-btn" data-go="parcerias">Ver todas →</button>
+          </div>
+          <div id="recentList" class="recent-list"></div>
+        </div>
+      </section>
+
+      <section id="parceriasSection" class="page-section hidden">
+        <div class="toolbar">
+          <div class="search-wrap">🔎<input id="searchInput" placeholder="Pesquisar organização, serviço ou Dark..." /></div>
+          <select id="categoryFilter">
+            <option value="">Todas as categorias</option>
+            <option>Lavagem</option>
+            <option>Contrabando</option>
+            <option>Armas</option>
+            <option>Colete e munições</option>
+            <option>Outros</option>
+          </select>
+          <button id="addBtn" class="primary-btn fit">＋ Nova parceria</button>
+        </div>
+        <div id="partnershipGrid" class="cards-grid"></div>
+        <div id="emptyState" class="empty-state hidden">Nenhuma parceria encontrada.</div>
+      </section>
+
+      <section id="avisosSection" class="page-section hidden">
+        <div class="panel notice-panel">
+          <p class="eyebrow">COMUNICADO</p>
+          <h3>Informações importantes</h3>
+          <div class="notice">
+            <span>⚠️</span>
+            <p>Confira sempre os dados antes de iniciar uma negociação. Senhas e contatos podem mudar.</p>
+          </div>
+          <div class="notice">
+            <span>📦</span>
+            <p>Para cargas da Bratva, utilize apenas o contato informado no sistema enquanto houver risco de assaltos.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div><p class="eyebrow">GERENCIAR</p><h3 id="modalTitle">Nova parceria</h3></div>
+        <button id="closeModal" class="icon-btn">✕</button>
+      </div>
+      <form id="partnershipForm">
+        <input id="editId" type="hidden" />
+        <div class="form-grid">
+          <label>ORGANIZAÇÃO<input id="name" required placeholder="Ex.: Bluekills" /></label>
+          <label>CATEGORIA
+            <select id="category" required>
+              <option>Lavagem</option><option>Contrabando</option><option>Armas</option>
+              <option>Colete e munições</option><option>Outros</option>
+            </select>
+          </label>
+          <label>CANAL DARK<input id="dark" placeholder="Ex.: bk-hh" /></label>
+          <label>SENHA<input id="password" placeholder="Ex.: 147" /></label>
+          <label>TELEFONE<input id="phone" placeholder="Ex.: 497-031" /></label>
+          <label>STATUS
+            <select id="status"><option>Ativa</option><option>Pausada</option></select>
+          </label>
+        </div>
+        <label>OBSERVAÇÃO<textarea id="notes" rows="3" placeholder="Informações importantes..."></textarea></label>
+        <div class="modal-actions">
+          <button type="button" id="cancelModal" class="ghost-btn">Cancelar</button>
+          <button type="submit" class="primary-btn fit">Salvar parceria</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
