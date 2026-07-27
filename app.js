@@ -1,220 +1,62 @@
-import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const $ = id => document.getElementById(id);
-const $$ = s => [...document.querySelectorAll(s)];
-const roleNames = { leader:"Líder", manager:"Gerente", member:"Membro" };
-let user = null, profile = null, unsubs = [];
-const cache = { members:[], partnerships:[], notices:[], users:[], history:[] };
-
-const passportEmail = value => {
-  const id = String(value).trim().toLowerCase().replace(/[^a-z0-9_-]/g,"");
-  return id ? `${id}@hellhounds.local` : "";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged,updatePassword} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getFirestore,collection,doc,getDoc,getDocs,setDoc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy,limit,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import {firebaseConfig} from "./firebase-config.js";
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);const $=id=>document.getElementById(id),$$=s=>[...document.querySelectorAll(s)];
+const roles={leader:"Líder",manager:"Gerente",member:"Membro"};let user=null,profile=null,unsubs=[];
+const cache={users:[],invitations:[],members:[],missions:[],partnerships:[],notices:[],events:[],reports:[],points:[],discipline:[],equipment:[],history:[]};
+const cleanPassport=v=>String(v||"").trim().replace(/\D/g,"");const passportEmail=v=>`${cleanPassport(v)}@hellhounds.local`;const safe=(v="")=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const dateValue=v=>{if(!v)return null;if(v.toDate)return v.toDate();const d=new Date(v);return isNaN(d)?null:d};const fmt=v=>{const d=dateValue(v);return d?d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"}):"—"};
+const canManage=()=>["leader","manager"].includes(profile?.role),isLeader=()=>profile?.role==="leader";
+function toast(msg,bad=false){const e=$("toast");e.textContent=msg;e.className=`toast show${bad?" error":""}`;clearTimeout(window.__t);window.__t=setTimeout(()=>e.className="toast",3200)}
+async function log(action,target="",details=""){if(!user||!profile)return;try{await addDoc(collection(db,"history"),{action,target,details,userId:user.uid,userName:profile.name,createdAt:serverTimestamp()})}catch(e){console.warn(e)}}
+function showAuth(first=false){$("loginForm").classList.toggle("hidden",first);$("firstAccessForm").classList.toggle("hidden",!first)}
+$("showFirstAccess").onclick=()=>showAuth(true);$("backToLogin").onclick=()=>showAuth(false);
+$("loginForm").onsubmit=async e=>{e.preventDefault();$("loginError").textContent="";const p=cleanPassport($("loginPassport").value);if(!p)return $("loginError").textContent="Digite um passaporte válido.";try{await signInWithEmailAndPassword(auth,passportEmail(p),$("loginPassword").value)}catch(err){console.error(err);$("loginError").textContent="Passaporte ou senha incorretos."}};
+$("firstAccessForm").onsubmit=async e=>{e.preventDefault();const out=$("firstAccessError");out.textContent="";const passport=cleanPassport($("firstPassport").value),pw=$("firstPassword").value,confirmPw=$("firstPasswordConfirm").value;if(!passport)return out.textContent="Digite um passaporte válido.";if(pw!==confirmPw)return out.textContent="As senhas não são iguais.";if(pw.length<6)return out.textContent="A senha precisa ter pelo menos 6 caracteres.";try{const inviteSnap=await getDoc(doc(db,"invitations",passport));if(!inviteSnap.exists())throw new Error("not-authorized");const invite=inviteSnap.data();if(invite.active===false)throw new Error("blocked");const cred=await createUserWithEmailAndPassword(auth,passportEmail(passport),pw);await setDoc(doc(db,"users",cred.user.uid),{name:invite.name,passport,role:invite.role||"member",active:true,createdAt:serverTimestamp()});await deleteDoc(doc(db,"invitations",passport));toast("Acesso ativado. Bem-vindo!")}catch(err){console.error(err);out.textContent=err.code==="auth/email-already-in-use"?"Este passaporte já possui uma senha. Volte e entre normalmente.":err.message==="not-authorized"?"Esse passaporte ainda não foi autorizado pela liderança.":"Não foi possível ativar o acesso."}};
+$("logoutBtn").onclick=()=>signOut(auth);
+onAuthStateChanged(auth,async u=>{stop();if(!u){user=profile=null;$("authView").classList.remove("hidden");$("appView").classList.add("hidden");return}user=u;try{profile=await ensureProfile(u);if(profile.active===false){toast("Conta bloqueada pela liderança.",true);return signOut(auth)}openApp();listen()}catch(e){console.error(e);toast("Não foi possível carregar seu perfil.",true);await signOut(auth)}});
+async function ensureProfile(u){const ref=doc(db,"users",u.uid),snap=await getDoc(ref);if(snap.exists())return{id:snap.id,...snap.data()};const setup=await getDoc(doc(db,"system","setup"));if(setup.exists())throw new Error("profile-missing");const passport=u.email?.split("@")[0]||"lider";const p={name:"Líder Hellhounds",passport,role:"leader",active:true,createdAt:serverTimestamp()};const batch=writeBatch(db);batch.set(ref,p);batch.set(doc(db,"system","setup"),{initialized:true,leaderId:u.uid,createdAt:serverTimestamp()});await batch.commit();toast("Primeiro perfil definido como Líder.");return{id:u.uid,...p}}
+function openApp(){$("authView").classList.add("hidden");$("appView").classList.remove("hidden");const name=profile.name||profile.passport;$("sidebarUserName").textContent=name;$("sidebarUserRole").textContent=roles[profile.role];$("topUserBadge").textContent=roles[profile.role];$("welcomeName").textContent=name.split(" ")[0];$("userInitial").textContent=name[0]?.toUpperCase()||"H";$$('.leader-only').forEach(x=>x.classList.toggle('hidden',!isLeader()));$$('.manager-only').forEach(x=>x.classList.toggle('hidden',!canManage()));switchPage("dashboard")}
+function stop(){unsubs.forEach(f=>f());unsubs=[]}
+function sub(name,ordered=false){let q=collection(db,name);if(ordered)q=query(q,orderBy("createdAt","desc"));unsubs.push(onSnapshot(q,s=>{cache[name]=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()},e=>console.warn(name,e)))}
+function listen(){["members","missions","partnerships","notices","events","reports","points","discipline","equipment"].forEach(n=>sub(n,["notices","reports","points","discipline","equipment"].includes(n)));sub("users");if(isLeader()){sub("invitations");unsubs.push(onSnapshot(query(collection(db,"history"),orderBy("createdAt","desc"),limit(150)),s=>{cache.history=s.docs.map(d=>({id:d.id,...d.data()}));renderAll()}))}}
+const pages={dashboard:"Dashboard",members:"Membros",missions:"Missões",partnerships:"Parcerias",notices:"Avisos",calendar:"Calendário",reports:"Relatórios",ranking:"Pontos e ranking",discipline:"Disciplina",equipment:"Equipamentos",access:"Acessos",history:"Histórico"};
+function switchPage(page){if((page==="access"||page==="history")&&!isLeader())return;if((page==="discipline"||page==="equipment")&&!canManage())return;$$('.page').forEach(x=>x.classList.remove('active'));$$('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$(page+'Page')?.classList.add('active');$("pageTitle").textContent=pages[page];$("sidebar").classList.remove("open")}
+$("mainNav").onclick=e=>{const b=e.target.closest('[data-page]');if(b)switchPage(b.dataset.page)};$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
+const defs={
+member:{title:"membro",collection:"members",fields:[['name','Nome','text'],['passport','Passaporte','text'],['rank','Cargo no RP','text'],['status','Status','select',['Ativo','Afastado','Inativo']],['notes','Observações','textarea']]},
+mission:{title:"missão",collection:"missions",fields:[['title','Nome da missão','text'],['date','Data e hora','datetime-local'],['leader','Líder da missão','text'],['participants','Participantes','textarea'],['objective','Objetivo','textarea'],['status','Status','select',['Planejada','Em andamento','Finalizada','Cancelada']],['points','Pontos por participação','number']]},
+partnership:{title:"parceria",collection:"partnerships",fields:[['organization','Organização','text'],['responsible','Responsável','text'],['contact','Discord / contato','text'],['status','Status','select',['Ativa','Pendente','Encerrada']],['notes','Observações','textarea']]},
+notice:{title:"aviso",collection:"notices",fields:[['title','Título','text'],['message','Mensagem','textarea'],['priority','Prioridade','select',['Normal','Importante','Urgente']]]},
+event:{title:"evento",collection:"events",fields:[['title','Título','text'],['date','Data e hora','datetime-local'],['type','Tipo','select',['Reunião','Missão','Evento','Treinamento']],['location','Local','text'],['notes','Observações','textarea']]},
+report:{title:"relatório",collection:"reports",fields:[['title','Título','text'],['mission','Missão relacionada','text'],['participants','Participantes','textarea'],['result','Resultado','select',['Sucesso','Parcial','Falha','Informativo']],['body','Relatório completo','textarea']]},
+points:{title:"lançamento de pontos",collection:"points",fields:[['memberPassport','Passaporte do membro','text'],['memberName','Nome do membro','text'],['amount','Pontos (use negativo para descontar)','number'],['reason','Motivo','text']]},
+discipline:{title:"registro disciplinar",collection:"discipline",fields:[['memberPassport','Passaporte','text'],['memberName','Nome','text'],['level','Tipo','select',['Advertência verbal','Advertência escrita','Suspensão','Expulsão']],['reason','Motivo','textarea'],['status','Status','select',['Ativa','Cumprida','Cancelada']]]},
+equipment:{title:"entrega de equipamento",collection:"equipment",fields:[['memberPassport','Passaporte','text'],['memberName','Nome','text'],['item','Item de RP','text'],['quantity','Quantidade','number'],['status','Status','select',['Entregue','Devolvido','Perdido']],['notes','Observações','textarea']]},
+access:{title:"autorização",collection:"invitations",fields:[['name','Nome do membro','text'],['passport','Passaporte','text'],['role','Cargo no painel','select',['member|Membro','manager|Gerente','leader|Líder']]]},
+password:{title:"nova senha",special:true,fields:[['password','Nova senha','password'],['confirm','Confirmar nova senha','password']]}
 };
-const safe = (v="") => String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-const formatDate = ts => {
-  if(!ts) return "Agora";
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
-};
-function toast(msg,bad=false){const el=$("toast");el.textContent=msg;el.className=`toast show${bad?" error":""}`;clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.className="toast",3000)}
-const isLeader = () => profile?.role === "leader";
-const canManage = () => ["leader","manager"].includes(profile?.role);
-
-async function logAction(action,target,details=""){
-  if(!user||!profile)return;
-  await addDoc(collection(db,"history"),{action,target,details,userName:profile.name,userId:user.uid,createdAt:serverTimestamp()});
-}
-
-$("loginForm").addEventListener("submit",async e=>{
-  e.preventDefault();
-  $("loginError").textContent="";
-  const email=passportEmail($("loginPassport").value);
-  if(!email){$("loginError").textContent="Digite um passaporte válido.";return}
-  try{await signInWithEmailAndPassword(auth,email,$("loginPassword").value)}
-  catch(err){console.error(err);$("loginError").textContent="Passaporte ou senha incorretos."}
-});
-$("logoutBtn").addEventListener("click",()=>signOut(auth));
-
-onAuthStateChanged(auth,async u=>{
-  stopListeners();
-  if(!u){
-    user=profile=null;
-    $("loginView").classList.remove("hidden");
-    $("appView").classList.add("hidden");
-    return;
-  }
-  user=u;
-  try{
-    profile=await ensureProfile(u);
-    if(profile.active===false){toast("Esta conta está bloqueada.",true);await signOut(auth);return}
-    openApp();
-    startListeners();
-  }catch(err){
-    console.error(err);
-    toast("Erro ao carregar o perfil.",true);
-    await signOut(auth);
-  }
-});
-
-async function ensureProfile(u){
-  const ref=doc(db,"users",u.uid);
-  const snap=await getDoc(ref);
-  if(snap.exists()) return {id:snap.id,...snap.data()};
-  const usersSnap=await getDocs(collection(db,"users"));
-  const first=usersSnap.empty;
-  const passport=u.email.split("@")[0];
-  const p={name:passport,passport,email:u.email,role:first?"leader":"member",active:true,createdAt:serverTimestamp()};
-  await setDoc(ref,p);
-  if(first)$("bootstrapBanner").classList.remove("hidden");
-  return {id:u.uid,...p};
-}
-function openApp(){
-  $("loginView").classList.add("hidden");
-  $("appView").classList.remove("hidden");
-  const name=profile.name||profile.passport;
-  const role=roleNames[profile.role]||"Membro";
-  $("sidebarUserName").textContent=name;
-  $("sidebarUserRole").textContent=role;
-  $("topUserName").textContent=name;
-  $("topUserBadge").textContent=role;
-  $("welcomeName").textContent=name.split(" ")[0];
-  $("userInitial").textContent=name[0].toUpperCase();
-  $$(".leader-only").forEach(el=>el.classList.toggle("hidden",!isLeader()));
-  $$(".manager-only").forEach(el=>el.classList.toggle("hidden",!canManage()));
-  switchPage("dashboard");
-}
-function stopListeners(){unsubs.forEach(fn=>fn());unsubs=[]}
-function startListeners(){
-  unsubs.push(onSnapshot(collection(db,"members"),s=>{cache.members=s.docs.map(d=>({id:d.id,...d.data()}));renderMembers();renderDashboard()}));
-  unsubs.push(onSnapshot(collection(db,"partnerships"),s=>{cache.partnerships=s.docs.map(d=>({id:d.id,...d.data()}));renderPartnerships();renderDashboard()}));
-  unsubs.push(onSnapshot(query(collection(db,"notices"),orderBy("createdAt","desc")),s=>{cache.notices=s.docs.map(d=>({id:d.id,...d.data()}));renderNotices();renderDashboard()}));
-  unsubs.push(onSnapshot(collection(db,"users"),s=>{cache.users=s.docs.map(d=>({id:d.id,...d.data()}));renderUsers();renderDashboard()}));
-  if(isLeader()) unsubs.push(onSnapshot(query(collection(db,"history"),orderBy("createdAt","desc"),limit(100)),s=>{cache.history=s.docs.map(d=>({id:d.id,...d.data()}));renderHistory();renderDashboard()}));
-}
-function switchPage(page){
-  const titles={dashboard:"Dashboard",members:"Membros",partnerships:"Parcerias",notices:"Avisos",users:"Acessos",history:"Histórico"};
-  $$(".page").forEach(el=>el.classList.remove("active"));
-  $$(".nav-item").forEach(el=>el.classList.toggle("active",el.dataset.page===page));
-  $(`${page}Page`).classList.add("active");
-  $("pageTitle").textContent=titles[page];
-  $("sidebar").classList.remove("open");
-}
-$("mainNav").addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b)switchPage(b.dataset.page)});
-$("menuBtn").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
-$$("[data-open-modal]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.openModal).showModal()));
-$$("[data-close-modal]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
-
-function renderDashboard(){
-  $("membersCount").textContent=cache.members.length;
-  $("partnershipsCount").textContent=cache.partnerships.filter(x=>x.status!=="Encerrada").length;
-  $("noticesCount").textContent=cache.notices.length;
-  $("usersCount").textContent=cache.users.filter(x=>x.active!==false).length;
-  $("recentNotices").innerHTML=cache.notices.slice(0,4).map(n=>`<div class="list-item"><div><strong>${safe(n.title)}</strong><p>${safe(n.message).slice(0,90)}</p></div><small>${formatDate(n.createdAt)}</small></div>`).join("")||`<div class="empty">Nenhum aviso publicado.</div>`;
-  $("recentHistory").innerHTML=isLeader()?(cache.history.slice(0,5).map(h=>`<div class="list-item"><div><strong>${safe(h.action)}</strong><p>${safe(h.userName)} · ${safe(h.target)}</p></div><small>${formatDate(h.createdAt)}</small></div>`).join("")||`<div class="empty">Nenhuma alteração registrada.</div>`):`<div class="empty">Disponível apenas para Líder.</div>`;
-}
-function renderMembers(){
-  const term=($("memberSearch")?.value||"").toLowerCase();
-  const rows=cache.members.filter(m=>`${m.name} ${m.passport} ${m.rank}`.toLowerCase().includes(term));
-  $("membersTable").innerHTML=rows.length?`<table class="data-table"><thead><tr><th>Nome</th><th>Passaporte</th><th>Cargo</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows.map(m=>`<tr><td>${safe(m.name)}</td><td>${safe(m.passport)}</td><td>${safe(m.rank)}</td><td><span class="status">${safe(m.status)}</span></td><td>${canManage()?`<div class="actions"><button class="icon-btn" data-edit-member="${m.id}">Editar</button><button class="icon-btn danger" data-delete-member="${m.id}">Excluir</button></div>`:"—"}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">Nenhum membro encontrado.</div>`;
-}
-$("memberSearch").addEventListener("input",renderMembers);
-$("membersTable").addEventListener("click",async e=>{
-  const edit=e.target.dataset.editMember,del=e.target.dataset.deleteMember;
-  if(edit){
-    const m=cache.members.find(x=>x.id===edit);
-    $("memberId").value=m.id;$("memberName").value=m.name;$("memberPassport").value=m.passport;$("memberRank").value=m.rank;$("memberStatus").value=m.status;$("memberNotes").value=m.notes||"";
-    $("memberModalTitle").textContent="Editar membro";$("memberModal").showModal();
-  }
-  if(del&&confirm("Excluir este membro?")){
-    const m=cache.members.find(x=>x.id===del);await deleteDoc(doc(db,"members",del));await logAction("Membro excluído",m?.name||del);toast("Membro excluído.");
-  }
-});
-$("memberForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!canManage())return;
-  const id=$("memberId").value;
-  const data={name:$("memberName").value.trim(),passport:$("memberPassport").value.trim(),rank:$("memberRank").value.trim(),status:$("memberStatus").value,notes:$("memberNotes").value.trim(),updatedAt:serverTimestamp()};
-  if(id){await updateDoc(doc(db,"members",id),data);await logAction("Membro atualizado",data.name)}
-  else{await addDoc(collection(db,"members"),{...data,createdAt:serverTimestamp()});await logAction("Membro adicionado",data.name)}
-  e.target.reset();$("memberId").value="";$("memberModal").close();toast("Membro salvo.");
-});
-
-function renderPartnerships(){
-  const term=($("partnershipSearch")?.value||"").toLowerCase();
-  const rows=cache.partnerships.filter(p=>`${p.organization} ${p.responsible}`.toLowerCase().includes(term));
-  $("partnershipsTable").innerHTML=rows.length?`<table class="data-table"><thead><tr><th>Organização</th><th>Responsável</th><th>Contato</th><th>Status</th><th>Ações</th></tr></thead><tbody>${rows.map(p=>`<tr><td>${safe(p.organization)}</td><td>${safe(p.responsible)}</td><td>${safe(p.discord||"—")}</td><td><span class="status">${safe(p.status)}</span></td><td>${canManage()?`<div class="actions"><button class="icon-btn" data-edit-partner="${p.id}">Editar</button><button class="icon-btn danger" data-delete-partner="${p.id}">Excluir</button></div>`:"—"}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">Nenhuma parceria encontrada.</div>`;
-}
-$("partnershipSearch").addEventListener("input",renderPartnerships);
-$("partnershipsTable").addEventListener("click",async e=>{
-  const edit=e.target.dataset.editPartner,del=e.target.dataset.deletePartner;
-  if(edit){
-    const p=cache.partnerships.find(x=>x.id===edit);
-    $("partnershipId").value=p.id;$("partnerOrganization").value=p.organization;$("partnerResponsible").value=p.responsible;$("partnerDiscord").value=p.discord||"";$("partnerStatus").value=p.status;$("partnerNotes").value=p.notes||"";
-    $("partnershipModalTitle").textContent="Editar parceria";$("partnershipModal").showModal();
-  }
-  if(del&&confirm("Excluir esta parceria?")){
-    const p=cache.partnerships.find(x=>x.id===del);await deleteDoc(doc(db,"partnerships",del));await logAction("Parceria excluída",p?.organization||del);toast("Parceria excluída.");
-  }
-});
-$("partnershipForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!canManage())return;
-  const id=$("partnershipId").value;
-  const data={organization:$("partnerOrganization").value.trim(),responsible:$("partnerResponsible").value.trim(),discord:$("partnerDiscord").value.trim(),status:$("partnerStatus").value,notes:$("partnerNotes").value.trim(),updatedAt:serverTimestamp()};
-  if(id){await updateDoc(doc(db,"partnerships",id),data);await logAction("Parceria atualizada",data.organization)}
-  else{await addDoc(collection(db,"partnerships"),{...data,createdAt:serverTimestamp()});await logAction("Parceria criada",data.organization)}
-  e.target.reset();$("partnershipId").value="";$("partnershipModal").close();toast("Parceria salva.");
-});
-
-function renderNotices(){
-  $("noticesList").innerHTML=cache.notices.length?cache.notices.map(n=>`<article class="notice-card priority-${safe(n.priority)}"><span class="eyebrow">${safe(n.priority)}</span><h4>${safe(n.title)}</h4><p>${safe(n.message)}</p><footer><span>${safe(n.authorName||"Liderança")}</span><span>${formatDate(n.createdAt)}</span></footer>${canManage()?`<button class="icon-btn danger" data-delete-notice="${n.id}">Excluir</button>`:""}</article>`).join(""):`<div class="empty">Nenhum aviso publicado.</div>`;
-}
-$("noticesList").addEventListener("click",async e=>{
-  const id=e.target.dataset.deleteNotice;
-  if(id&&confirm("Excluir este aviso?")){
-    const n=cache.notices.find(x=>x.id===id);await deleteDoc(doc(db,"notices",id));await logAction("Aviso excluído",n?.title||id);toast("Aviso excluído.");
-  }
-});
-$("noticeForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!canManage())return;
-  const data={title:$("noticeTitle").value.trim(),message:$("noticeMessage").value.trim(),priority:$("noticePriority").value,authorId:user.uid,authorName:profile.name,createdAt:serverTimestamp()};
-  await addDoc(collection(db,"notices"),data);await logAction("Aviso publicado",data.title);e.target.reset();$("noticeModal").close();toast("Aviso publicado.");
-});
-
-function renderUsers(){
-  if(!isLeader())return;
-  $("usersTable").innerHTML=cache.users.length?`<table class="data-table"><thead><tr><th>Nome</th><th>Passaporte</th><th>Cargo</th><th>Status</th><th>Ações</th></tr></thead><tbody>${cache.users.map(u=>`<tr><td>${safe(u.name)}</td><td>${safe(u.passport)}</td><td><select data-role-user="${u.id}" ${u.id===user.uid?"disabled":""}><option value="member" ${u.role==="member"?"selected":""}>Membro</option><option value="manager" ${u.role==="manager"?"selected":""}>Gerente</option><option value="leader" ${u.role==="leader"?"selected":""}>Líder</option></select></td><td><span class="status">${u.active===false?"Bloqueado":"Ativo"}</span></td><td>${u.id!==user.uid?`<button class="icon-btn" data-toggle-user="${u.id}">${u.active===false?"Ativar":"Bloquear"}</button>`:"Conta atual"}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">Nenhum usuário.</div>`;
-}
-$("usersTable").addEventListener("change",async e=>{
-  const id=e.target.dataset.roleUser;if(!id||!isLeader())return;
-  await updateDoc(doc(db,"users",id),{role:e.target.value,updatedAt:serverTimestamp()});await logAction("Cargo alterado",cache.users.find(x=>x.id===id)?.passport||id,roleNames[e.target.value]);toast("Cargo atualizado.");
-});
-$("usersTable").addEventListener("click",async e=>{
-  const id=e.target.dataset.toggleUser;if(!id||!isLeader())return;
-  const u=cache.users.find(x=>x.id===id);
-  await updateDoc(doc(db,"users",id),{active:u.active===false,updatedAt:serverTimestamp()});
-  await logAction(u.active===false?"Usuário ativado":"Usuário bloqueado",u.passport);toast("Status atualizado.");
-});
-$("userForm").addEventListener("submit",async e=>{
-  e.preventDefault();if(!isLeader())return;
-  const passport=$("newUserPassport").value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"");
-  if(!passport){toast("Passaporte inválido.",true);return}
-  const secondary=initializeApp(firebaseConfig,`secondary-${Date.now()}`);
-  const secondaryAuth=getAuth(secondary);
-  try{
-    const cred=await createUserWithEmailAndPassword(secondaryAuth,passportEmail(passport),$("newUserPassword").value);
-    await setDoc(doc(db,"users",cred.user.uid),{name:$("newUserName").value.trim(),passport,email:passportEmail(passport),role:$("newUserRole").value,active:true,createdAt:serverTimestamp()});
-    await signOut(secondaryAuth);await deleteApp(secondary);
-    await logAction("Usuário criado",passport,roleNames[$("newUserRole").value]);
-    e.target.reset();$("userModal").close();toast("Usuário criado.");
-  }catch(err){console.error(err);try{await deleteApp(secondary)}catch{}toast("Não foi possível criar. O passaporte pode já existir.",true)}
-});
-
-function renderHistory(){
-  if(!isLeader())return;
-  $("historyList").innerHTML=cache.history.length?cache.history.map(h=>`<div class="list-item"><div><strong>${safe(h.action)}</strong><p>${safe(h.userName)} · ${safe(h.target)} ${h.details?`· ${safe(h.details)}`:""}</p></div><small>${formatDate(h.createdAt)}</small></div>`).join(""):`<div class="empty">Nenhum registro.</div>`;
-}
+function fieldHtml([key,label,type,opts],value=""){if(type==='textarea')return`<label>${label}<textarea id="f_${key}" rows="3" required>${safe(value)}</textarea></label>`;if(type==='select'){const choices=opts.map(o=>{const [v,n]=String(o).includes('|')?o.split('|'):[o,o];return`<option value="${safe(v)}" ${String(value)===v?'selected':''}>${safe(n)}</option>`}).join('');return`<label>${label}<select id="f_${key}" required>${choices}</select></label>`}return`<label>${label}<input id="f_${key}" type="${type}" value="${safe(value??'')}" ${type==='number'?'step="1"':''} required></label>`}
+function openModal(type,id=""){const d=defs[type];if(!d)return;if(!canManage()&&!['password'].includes(type))return;if(type==='access'&&!isLeader())return;$("crudType").value=type;$("crudId").value=id;let item=null;if(id)item=cache[d.collection]?.find(x=>x.id===id);$("crudTitle").textContent=`${id?'Editar':'Novo'} ${d.title}`;$("crudFields").innerHTML=d.fields.map(f=>fieldHtml(f,item?.[f[0]]??'')).join('');$("crudModal").showModal()}
+document.body.onclick=e=>{const n=e.target.closest('[data-new]');if(n)openModal(n.dataset.new);const ed=e.target.closest('[data-edit]');if(ed)openModal(ed.dataset.type,ed.dataset.edit);const del=e.target.closest('[data-delete]');if(del)removeRecord(del.dataset.type,del.dataset.delete);const tog=e.target.closest('[data-toggle-user]');if(tog)toggleUser(tog.dataset.toggleUser)};$("closeModal").onclick=$("cancelModal").onclick=()=>$("crudModal").close();
+$("crudForm").onsubmit=async e=>{e.preventDefault();const type=$("crudType").value,d=defs[type],id=$("crudId").value;const data={};d.fields.forEach(f=>data[f[0]]=$("f_"+f[0]).value.trim());try{if(type==='password'){if(data.password!==data.confirm)throw new Error('Senhas diferentes');if(data.password.length<6)throw new Error('Senha curta');await updatePassword(user,data.password);$("crudModal").close();return toast("Senha alterada com sucesso.")}if(type==='access'){const passport=cleanPassport(data.passport);if(!passport)throw new Error('Passaporte inválido');await setDoc(doc(db,'invitations',passport),{name:data.name,passport,role:data.role,active:true,createdAt:serverTimestamp(),createdBy:user.uid});await log('Passaporte autorizado',passport,roles[data.role]);}else{data.updatedAt=serverTimestamp();if(type==='points'||type==='mission')data.points=data.points?Number(data.points):0;if(type==='points')data.amount=Number(data.amount);if(type==='equipment')data.quantity=Number(data.quantity);if(id){await updateDoc(doc(db,d.collection,id),data);await log(`${cap(d.title)} atualizado`,data.title||data.name||data.memberName||id)}else{data.createdAt=serverTimestamp();data.authorName=profile.name;data.authorId=user.uid;await addDoc(collection(db,d.collection),data);await log(`${cap(d.title)} criado`,data.title||data.name||data.memberName||'registro')}}$("crudModal").close();toast("Registro salvo.")}catch(err){console.error(err);toast(err.message||"Não foi possível salvar.",true)}};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);const typeCollection=t=>defs[t]?.collection;
+async function removeRecord(type,id){if(!canManage()||(type==='access'&&!isLeader()))return;if(!confirm('Excluir este registro?'))return;try{const col=typeCollection(type);await deleteDoc(doc(db,col,id));await log(`${cap(defs[type].title)} excluído`,id);toast('Registro excluído.')}catch(e){toast('Não foi possível excluir.',true)}}
+async function toggleUser(id){if(!isLeader()||id===user.uid)return;const u=cache.users.find(x=>x.id===id);await updateDoc(doc(db,'users',id),{active:u.active===false,updatedAt:serverTimestamp()});await log(u.active===false?'Acesso ativado':'Acesso bloqueado',u.passport);toast('Status atualizado.')}
+function edit(type,id){return canManage()?`<div class="actions"><button class="icon-btn" data-type="${type}" data-edit="${id}">Editar</button><button class="icon-btn danger" data-type="${type}" data-delete="${id}">Excluir</button></div>`:'—'}
+function table(headers,rows){return rows.length?`<table class="data-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`:'<div class="empty">Nenhum registro encontrado.</div>'}
+function renderAll(){renderDashboard();renderMembers();renderMissions();renderPartnerships();renderNotices();renderEvents();renderReports();renderRanking();renderDiscipline();renderEquipment();renderAccess();renderHistory()}
+function renderDashboard(){const activeMembers=cache.members.filter(x=>x.status==='Ativo').length,activePartners=cache.partnerships.filter(x=>x.status==='Ativa').length,pendingMissions=cache.missions.filter(x=>['Planejada','Em andamento'].includes(x.status)).length;const stats=[['Membros',activeMembers,'ativos'],['Missões',pendingMissions,'abertas'],['Parcerias',activePartners,'ativas'],['Avisos',cache.notices.length,'publicados'],['Relatórios',cache.reports.length,'salvos'],['Eventos',cache.events.length,'agendados']];$("statsGrid").innerHTML=stats.map(s=>`<article class="stat-card"><span>${s[0]}</span><strong>${s[1]}</strong><small>${s[2]}</small></article>`).join('');$("recentMissions").innerHTML=cache.missions.filter(x=>x.status==='Planejada').sort((a,b)=>String(a.date).localeCompare(String(b.date))).slice(0,4).map(x=>`<div class="list-item"><div><strong>${safe(x.title)}</strong><p>${safe(x.leader||'Sem líder')} · ${safe(x.status)}</p></div><small>${fmt(x.date)}</small></div>`).join('')||'<div class="empty">Nenhuma missão planejada.</div>';$("recentNotices").innerHTML=cache.notices.slice(0,4).map(x=>`<div class="list-item"><div><strong>${safe(x.title)}</strong><p>${safe(x.message).slice(0,100)}</p></div><small>${fmt(x.createdAt)}</small></div>`).join('')||'<div class="empty">Nenhum aviso.</div>'}
+function renderMembers(){const term=($("memberSearch")?.value||'').toLowerCase(),r=cache.members.filter(x=>`${x.name} ${x.passport} ${x.rank}`.toLowerCase().includes(term));$("membersTable").innerHTML=table(['Nome','Passaporte','Cargo','Status','Ações'],r.map(x=>`<tr><td>${safe(x.name)}</td><td>${safe(x.passport)}</td><td>${safe(x.rank)}</td><td><span class="status">${safe(x.status)}</span></td><td>${edit('member',x.id)}</td></tr>`))}$("memberSearch").oninput=renderMembers;
+function renderMissions(){$("missionsTable").innerHTML=table(['Missão','Data','Líder','Status','Pontos','Ações'],cache.missions.map(x=>`<tr><td>${safe(x.title)}</td><td>${fmt(x.date)}</td><td>${safe(x.leader)}</td><td><span class="status">${safe(x.status)}</span></td><td>${safe(x.points||0)}</td><td>${edit('mission',x.id)}</td></tr>`))}
+function renderPartnerships(){$("partnershipsTable").innerHTML=table(['Organização','Responsável','Contato','Status','Ações'],cache.partnerships.map(x=>`<tr><td>${safe(x.organization)}</td><td>${safe(x.responsible)}</td><td>${safe(x.contact||'—')}</td><td><span class="status">${safe(x.status)}</span></td><td>${edit('partnership',x.id)}</td></tr>`))}
+function card(x,type,title,body,meta){return`<article class="content-card"><span class="eyebrow">${safe(meta||'REGISTRO')}</span><h4>${safe(title)}</h4><p>${safe(body)}</p><footer><span>${safe(x.authorName||'Hellhounds')}</span><span>${fmt(x.createdAt)}</span></footer>${canManage()?`<div class="actions"><button class="icon-btn" data-type="${type}" data-edit="${x.id}">Editar</button><button class="icon-btn danger" data-type="${type}" data-delete="${x.id}">Excluir</button></div>`:''}</article>`}
+function renderNotices(){$("noticesList").innerHTML=cache.notices.map(x=>card(x,'notice',x.title,x.message,x.priority)).join('')||'<div class="empty">Nenhum aviso publicado.</div>'}
+function renderEvents(){$("calendarList").innerHTML=cache.events.sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(x=>`<div class="timeline-item"><strong>${fmt(x.date)}</strong><div><span class="eyebrow">${safe(x.type)}</span><h3>${safe(x.title)}</h3><p>${safe(x.location||'Local não definido')} · ${safe(x.notes||'')}</p>${canManage()?edit('event',x.id):''}</div></div>`).join('')||'<div class="empty">Nenhum evento agendado.</div>'}
+function renderReports(){$("reportsList").innerHTML=cache.reports.map(x=>card(x,'report',x.title,x.body,x.result)).join('')||'<div class="empty">Nenhum relatório.</div>'}
+function renderRanking(){const sums={};cache.points.forEach(x=>{const k=x.memberPassport||x.memberName;if(!sums[k])sums[k]={passport:x.memberPassport,name:x.memberName,total:0};sums[k].total+=Number(x.amount)||0});const rows=Object.values(sums).sort((a,b)=>b.total-a.total);$("rankingTable").innerHTML=table(['Posição','Nome','Passaporte','Pontos'],rows.map((x,i)=>`<tr><td><strong>#${i+1}</strong></td><td>${safe(x.name)}</td><td>${safe(x.passport)}</td><td><strong>${x.total}</strong></td></tr>`))}
+function renderDiscipline(){$("disciplineTable").innerHTML=table(['Membro','Passaporte','Registro','Status','Data','Ações'],cache.discipline.map(x=>`<tr><td>${safe(x.memberName)}</td><td>${safe(x.memberPassport)}</td><td>${safe(x.level)}</td><td><span class="status">${safe(x.status)}</span></td><td>${fmt(x.createdAt)}</td><td>${edit('discipline',x.id)}</td></tr>`))}
+function renderEquipment(){$("equipmentTable").innerHTML=table(['Membro','Item','Qtd.','Status','Data','Ações'],cache.equipment.map(x=>`<tr><td>${safe(x.memberName)} (${safe(x.memberPassport)})</td><td>${safe(x.item)}</td><td>${safe(x.quantity)}</td><td><span class="status">${safe(x.status)}</span></td><td>${fmt(x.createdAt)}</td><td>${edit('equipment',x.id)}</td></tr>`))}
+function renderAccess(){if(!isLeader())return;const pending=cache.invitations.map(x=>`<tr><td>${safe(x.name)}</td><td>${safe(x.passport)}</td><td>${safe(roles[x.role])}</td><td><span class="status">Aguardando primeiro acesso</span></td><td><button class="icon-btn danger" data-type="access" data-delete="${x.id}">Cancelar</button></td></tr>`);const active=cache.users.map(x=>`<tr><td>${safe(x.name)}</td><td>${safe(x.passport)}</td><td>${safe(roles[x.role])}</td><td><span class="status">${x.active===false?'Bloqueado':'Ativo'}</span></td><td>${x.id===user.uid?'Conta atual':`<button class="icon-btn" data-toggle-user="${x.id}">${x.active===false?'Ativar':'Bloquear'}</button>`}</td></tr>`);$("accessTable").innerHTML=table(['Nome','Passaporte','Cargo','Situação','Ação'],[...pending,...active])}
+function renderHistory(){if(!isLeader())return;$("historyList").innerHTML=cache.history.map(x=>`<div class="list-item"><div><strong>${safe(x.action)}</strong><p>${safe(x.userName)} · ${safe(x.target)} ${x.details?'· '+safe(x.details):''}</p></div><small>${fmt(x.createdAt)}</small></div>`).join('')||'<div class="empty">Nenhuma alteração registrada.</div>'}

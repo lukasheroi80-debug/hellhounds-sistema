@@ -1,38 +1,34 @@
-# Hellhounds Sistema v3
+# Hellhounds — Central de Comando v4
 
-## Login por passaporte
+Painel estático para Vercel, usando Firebase Authentication e Firestore.
 
-O Firebase usa e-mail internamente, mas o usuário só digita o passaporte.
+## Login correto
 
-Exemplo:
+O membro nunca digita e-mail. O site transforma o passaporte em um e-mail técnico interno, por exemplo `1234@hellhounds.local`.
 
-- Passaporte: `1234`
-- E-mail interno criado pelo sistema: `1234@hellhounds.local`
+### Primeiro acesso de um membro
 
-## Primeiro acesso
+1. O Líder abre **Acessos → Autorizar passaporte**.
+2. Informa nome, passaporte da cidade e cargo no painel.
+3. O membro abre **Primeiro acesso? Criar minha senha**.
+4. Digita o passaporte autorizado e cria a própria senha.
+5. Nos próximos acessos, usa passaporte + senha criada.
 
-Como você já criou uma conta usando Gmail na versão anterior, crie agora uma nova conta no Firebase Authentication usando:
+## Primeiro Líder
 
-- E-mail: `1234@hellhounds.local`
-- Senha: escolha uma senha com pelo menos 6 caracteres
+A primeira conta que conseguir entrar e ainda não tiver perfil será configurada como Líder. Para aproveitar a conta já criada no Firebase, entre com o passaporte correspondente e a senha conhecida. Depois disso, o painel passa a exigir autorizações.
 
-Depois entre no site com:
+## Instalação
 
-- Passaporte: `1234`
-- Senha: a mesma cadastrada
+1. Substitua os arquivos do repositório pelos desta pasta.
+2. No Firebase, confirme **Authentication → Sign-in method → Email/Password** ativado.
+3. Em **Firestore Database → Rules**, cole todo o conteúdo de `firestore.rules` e clique em **Publicar**.
+4. Faça o commit no GitHub. A Vercel fará o deploy automaticamente.
 
-No primeiro login, a primeira conta vira **Líder** automaticamente.
+## Painéis
 
-## Cargos
+Dashboard, membros, missões, parcerias, avisos, calendário, relatórios, pontos/ranking, disciplina, equipamentos, acessos e histórico.
 
-- Líder: acesso total.
-- Gerente: edita membros, parcerias e avisos.
-- Membro: somente consulta.
+## Observação sobre senha
 
-## Regras do Firestore
-
-Depois do primeiro login:
-
-1. Abra Firebase > Firestore Database > Regras.
-2. Copie o conteúdo do arquivo `firestore.rules`.
-3. Cole e clique em Publicar.
+Cada usuário pode alterar a própria senha pelo botão **Alterar senha**. Como este projeto é somente front-end, o Líder pode bloquear uma conta, mas não pode trocar diretamente a senha de outra pessoa sem um backend administrativo. Isso evita uma falsa função de “reset” que não funcionaria.
