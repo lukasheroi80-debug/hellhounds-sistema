@@ -1,5 +1,5 @@
 export const firebaseConfig = {
-  apiKey: "AIzaSyDmoXysCoLuvixYpCXhBQrwi3RnUz2hjkY",
+  apiKey: "AIzaSyDMoXysCoLuvixYpCXhBQrwi3RnUz2hjkY",
   authDomain: "hellhounds-sistema.firebaseapp.com",
   projectId: "hellhounds-sistema",
   storageBucket: "hellhounds-sistema.firebasestorage.app",

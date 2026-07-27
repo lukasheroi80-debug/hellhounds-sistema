@@ -11,19 +11,19 @@ service cloud.firestore {
       return signedIn() && profile().active == true;
     }
     function manager() {
-      return active() && (profile().role == "manager" || profile().role == "owner");
+      return active() && (profile().role == "manager" || profile().role == "leader");
     }
-    function owner() {
-      return active() && profile().role == "owner";
+    function leader() {
+      return active() && profile().role == "leader";
     }
 
     match /users/{userId} {
-      allow create: if signedIn() && (request.auth.uid == userId || owner());
+      allow create: if signedIn() && (request.auth.uid == userId || leader());
       allow read: if active();
-      allow update: if owner() || (request.auth.uid == userId
+      allow update: if leader() || (request.auth.uid == userId
         && request.resource.data.role == resource.data.role
         && request.resource.data.active == resource.data.active);
-      allow delete: if owner() && request.auth.uid != userId;
+      allow delete: if leader() && request.auth.uid != userId;
     }
 
     match /members/{docId} {
@@ -42,7 +42,7 @@ service cloud.firestore {
     }
 
     match /history/{docId} {
-      allow read: if owner();
+      allow read: if leader();
       allow create: if manager();
       allow update, delete: if false;
     }

@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a0710" />
-  <title>Hellhounds | Painel de Gestão</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#09070e">
+  <title>Hellhounds | Painel Interno</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -32,18 +32,15 @@
         </div>
         <span class="eyebrow">ACESSO RESTRITO</span>
         <h2>Entrar no painel</h2>
-        <p class="muted">Use o e-mail e a senha cadastrados pela liderança.</p>
+        <p class="muted">Use seu passaporte e sua senha.</p>
 
-        <label>E-mail
-          <input id="loginEmail" type="email" placeholder="seuemail@exemplo.com" required />
+        <label>Passaporte / ID
+          <input id="loginPassport" inputmode="numeric" placeholder="Ex.: 1234" required>
         </label>
-
         <label>Senha
-          <input id="loginPassword" type="password" placeholder="••••••••" minlength="6" required />
+          <input id="loginPassword" type="password" minlength="6" placeholder="••••••••" required>
         </label>
-
         <button class="primary-btn" type="submit">Acessar sistema</button>
-        <button class="link-btn" id="forgotPasswordBtn" type="button">Esqueci minha senha</button>
         <p id="loginError" class="form-error"></p>
       </form>
     </div>
@@ -53,10 +50,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <img src="hellhounds-logo.jpeg" alt="Hellhounds">
-        <div>
-          <strong>HELLHOUNDS</strong>
-          <small>Painel de Gestão</small>
-        </div>
+        <div><strong>HELLHOUNDS</strong><small>Painel de Gestão</small></div>
       </div>
 
       <nav id="mainNav">
@@ -64,17 +58,14 @@
         <button class="nav-item" data-page="members">♟ <span>Membros</span></button>
         <button class="nav-item" data-page="partnerships">◇ <span>Parcerias</span></button>
         <button class="nav-item" data-page="notices">✦ <span>Avisos</span></button>
-        <button class="nav-item admin-only" data-page="users">⚙ <span>Usuários</span></button>
-        <button class="nav-item admin-only" data-page="history">☷ <span>Histórico</span></button>
+        <button class="nav-item leader-only" data-page="users">⚙ <span>Acessos</span></button>
+        <button class="nav-item leader-only" data-page="history">☷ <span>Histórico</span></button>
       </nav>
 
       <div class="sidebar-footer">
         <div class="user-mini">
           <div class="avatar" id="userInitial">H</div>
-          <div>
-            <strong id="sidebarUserName">Usuário</strong>
-            <small id="sidebarUserRole">Membro</small>
-          </div>
+          <div><strong id="sidebarUserName">Usuário</strong><small id="sidebarUserRole">Membro</small></div>
         </div>
         <button id="logoutBtn" class="secondary-btn">Sair</button>
       </div>
@@ -83,38 +74,26 @@
     <main class="main">
       <header class="topbar">
         <button id="menuBtn" class="menu-btn">☰</button>
-        <div>
-          <span class="eyebrow">CENTRAL HELLHOUNDS</span>
-          <h2 id="pageTitle">Dashboard</h2>
-        </div>
-        <div class="topbar-user">
-          <span id="topUserName">Usuário</span>
-          <span id="topUserBadge" class="role-badge">Membro</span>
-        </div>
+        <div><span class="eyebrow">CENTRAL HELLHOUNDS</span><h2 id="pageTitle">Dashboard</h2></div>
+        <div class="topbar-user"><span id="topUserName">Usuário</span><span id="topUserBadge" class="role-badge">Membro</span></div>
       </header>
 
       <div id="bootstrapBanner" class="bootstrap-banner hidden">
         <strong>Primeiro acesso detectado.</strong>
-        <span>Esta conta foi definida como Dono do sistema.</span>
+        <span>Esta conta foi definida como Líder.</span>
       </div>
 
       <section id="dashboardPage" class="page active">
         <div class="hero-card">
-          <div>
-            <span class="eyebrow">VISÃO GERAL</span>
-            <h1>Bem-vindo, <span id="welcomeName">líder</span>.</h1>
-            <p>Gerencie a operação da Hellhounds com controle e segurança.</p>
-          </div>
+          <div><span class="eyebrow">VISÃO GERAL</span><h1>Bem-vindo, <span id="welcomeName">líder</span>.</h1><p>Gerencie a operação da Hellhounds com controle e segurança.</p></div>
           <img src="hellhounds-logo.jpeg" alt="">
         </div>
-
         <div class="stats-grid">
           <article class="stat-card"><span>Membros</span><strong id="membersCount">0</strong><small>cadastrados</small></article>
           <article class="stat-card"><span>Parcerias</span><strong id="partnershipsCount">0</strong><small>ativas</small></article>
           <article class="stat-card"><span>Avisos</span><strong id="noticesCount">0</strong><small>publicados</small></article>
-          <article class="stat-card"><span>Usuários</span><strong id="usersCount">0</strong><small>com acesso</small></article>
+          <article class="stat-card"><span>Acessos</span><strong id="usersCount">0</strong><small>ativos</small></article>
         </div>
-
         <div class="dashboard-grid">
           <article class="panel">
             <div class="panel-header"><div><span class="eyebrow">RECENTES</span><h3>Últimos avisos</h3></div></div>
@@ -162,10 +141,10 @@
       <section id="usersPage" class="page">
         <div class="panel">
           <div class="panel-header">
-            <div><span class="eyebrow">ADMINISTRAÇÃO</span><h3>Usuários e permissões</h3></div>
-            <button class="primary-btn" data-open-modal="userModal">Criar usuário</button>
+            <div><span class="eyebrow">LIDERANÇA</span><h3>Contas e cargos</h3></div>
+            <button class="primary-btn" data-open-modal="userModal">Criar acesso</button>
           </div>
-          <div class="info-box">Dono tem acesso total. Gerente pode editar conteúdos. Membro possui acesso de consulta.</div>
+          <div class="info-box">Líder tem acesso total. Gerente edita conteúdos. Membro apenas consulta.</div>
           <div id="usersTable" class="table-wrap"></div>
         </div>
       </section>
@@ -180,22 +159,22 @@
   </section>
 
   <dialog id="memberModal" class="modal">
-    <form id="memberForm" method="dialog">
+    <form id="memberForm">
       <div class="modal-head"><h3 id="memberModalTitle">Adicionar membro</h3><button type="button" data-close-modal>×</button></div>
       <input type="hidden" id="memberId">
       <div class="form-grid">
         <label>Nome<input id="memberName" required></label>
         <label>Passaporte<input id="memberPassport" required></label>
-        <label>Cargo<input id="memberRank" required placeholder="Ex.: Gerente"></label>
+        <label>Cargo<input id="memberRank" required></label>
         <label>Status<select id="memberStatus"><option>Ativo</option><option>Inativo</option><option>Afastado</option></select></label>
       </div>
       <label>Observações<textarea id="memberNotes" rows="3"></textarea></label>
-      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Salvar</button></div>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn">Salvar</button></div>
     </form>
   </dialog>
 
   <dialog id="partnershipModal" class="modal">
-    <form id="partnershipForm" method="dialog">
+    <form id="partnershipForm">
       <div class="modal-head"><h3 id="partnershipModalTitle">Nova parceria</h3><button type="button" data-close-modal>×</button></div>
       <input type="hidden" id="partnershipId">
       <div class="form-grid">
@@ -205,29 +184,29 @@
         <label>Status<select id="partnerStatus"><option>Ativa</option><option>Pendente</option><option>Encerrada</option></select></label>
       </div>
       <label>Observações<textarea id="partnerNotes" rows="3"></textarea></label>
-      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Salvar</button></div>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn">Salvar</button></div>
     </form>
   </dialog>
 
   <dialog id="noticeModal" class="modal">
-    <form id="noticeForm" method="dialog">
+    <form id="noticeForm">
       <div class="modal-head"><h3>Novo aviso</h3><button type="button" data-close-modal>×</button></div>
       <label>Título<input id="noticeTitle" required></label>
       <label>Mensagem<textarea id="noticeMessage" rows="6" required></textarea></label>
       <label>Prioridade<select id="noticePriority"><option>Normal</option><option>Importante</option><option>Urgente</option></select></label>
-      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Publicar</button></div>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn">Publicar</button></div>
     </form>
   </dialog>
 
   <dialog id="userModal" class="modal">
-    <form id="userForm" method="dialog">
-      <div class="modal-head"><h3>Criar usuário</h3><button type="button" data-close-modal>×</button></div>
-      <div class="info-box">A senha deve ter pelo menos 6 caracteres. O usuário poderá trocá-la por recuperação de e-mail.</div>
+    <form id="userForm">
+      <div class="modal-head"><h3>Criar acesso</h3><button type="button" data-close-modal>×</button></div>
+      <div class="info-box">A pessoa entrará com passaporte e senha.</div>
       <label>Nome<input id="newUserName" required></label>
-      <label>E-mail<input id="newUserEmail" type="email" required></label>
+      <label>Passaporte / ID<input id="newUserPassport" required></label>
       <label>Senha temporária<input id="newUserPassword" type="password" minlength="6" required></label>
-      <label>Cargo<select id="newUserRole"><option value="member">Membro</option><option value="manager">Gerente</option><option value="owner">Dono</option></select></label>
-      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Criar acesso</button></div>
+      <label>Cargo<select id="newUserRole"><option value="member">Membro</option><option value="manager">Gerente</option><option value="leader">Líder</option></select></label>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn">Criar conta</button></div>
     </form>
   </dialog>
 

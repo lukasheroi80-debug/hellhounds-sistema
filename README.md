@@ -1,36 +1,38 @@
-# Hellhounds Sistema v2
+# Hellhounds Sistema v3
 
-Painel web com Firebase Authentication, Firestore, cargos e permissões.
+## Login por passaporte
+
+O Firebase usa e-mail internamente, mas o usuário só digita o passaporte.
+
+Exemplo:
+
+- Passaporte: `1234`
+- E-mail interno criado pelo sistema: `1234@hellhounds.local`
 
 ## Primeiro acesso
 
-1. No Firebase Console, abra **Authentication > Usuários**.
-2. Clique em **Adicionar usuário**.
-3. Cadastre seu e-mail e uma senha com pelo menos 6 caracteres.
-4. Publique estes arquivos no GitHub/Vercel.
-5. Entre no site com essa conta.
-6. Como ainda não existe nenhum perfil em `users`, o primeiro login vira **Dono** automaticamente.
+Como você já criou uma conta usando Gmail na versão anterior, crie agora uma nova conta no Firebase Authentication usando:
+
+- E-mail: `1234@hellhounds.local`
+- Senha: escolha uma senha com pelo menos 6 caracteres
+
+Depois entre no site com:
+
+- Passaporte: `1234`
+- Senha: a mesma cadastrada
+
+No primeiro login, a primeira conta vira **Líder** automaticamente.
 
 ## Cargos
 
-- **Dono:** acesso total, usuários, cargos e histórico.
-- **Gerente:** gerencia membros, parcerias e avisos.
-- **Membro:** somente leitura.
+- Líder: acesso total.
+- Gerente: edita membros, parcerias e avisos.
+- Membro: somente consulta.
 
-## Segurança importante
+## Regras do Firestore
 
-O Firestore foi criado em modo de teste. Depois do primeiro login, copie o conteúdo de `firestore.rules`, abra:
+Depois do primeiro login:
 
-**Firebase > Firestore Database > Regras**
-
-Cole as regras e clique em **Publicar**.
-
-## Arquivos
-
-- `index.html`: estrutura do site.
-- `styles.css`: visual preto/roxo.
-- `app.js`: autenticação, dados e permissões.
-- `firebase-config.js`: conexão com o projeto Firebase.
-- `firestore.rules`: regras de segurança.
-- `hellhounds-logo.jpeg`: identidade visual.
-- `vercel.json`: configuração da Vercel.
+1. Abra Firebase > Firestore Database > Regras.
+2. Copie o conteúdo do arquivo `firestore.rules`.
+3. Cole e clique em Publicar.
