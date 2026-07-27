@@ -1,52 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn(){ return request.auth != null; }
-    function userDoc(){ return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
-    function active(){ return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && userDoc().active == true; }
-    function manager(){ return active() && (userDoc().role == 'manager' || userDoc().role == 'leader'); }
-    function leader(){ return active() && userDoc().role == 'leader'; }
-
-    match /system/setup {
-      allow read: if signedIn();
-      allow create: if signedIn() && !exists(/databases/$(database)/documents/system/setup);
-      allow update, delete: if false;
-    }
-
-    match /invitations/{passport} {
-      // Necessário para a tela de primeiro acesso verificar o passaporte.
-      allow get: if true;
-      allow list: if leader();
-      allow create, update: if leader();
-      allow delete: if leader() || (signedIn() && request.auth.token.email == passport + '@hellhounds.local');
-    }
-
-    match /users/{uid} {
-      allow read: if active();
-      allow create: if signedIn() && request.auth.uid == uid && (
-        exists(/databases/$(database)/documents/invitations/$(request.resource.data.passport)) ||
-        !exists(/databases/$(database)/documents/system/setup)
-      );
-      allow update: if leader() || (active() && request.auth.uid == uid
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.active == resource.data.active
-        && request.resource.data.passport == resource.data.passport);
-      allow delete: if leader() && request.auth.uid != uid;
-    }
-
-    match /members/{id} { allow read: if active(); allow write: if manager(); }
-    match /missions/{id} { allow read: if active(); allow write: if manager(); }
-    match /partnerships/{id} { allow read: if active(); allow write: if manager(); }
-    match /notices/{id} { allow read: if active(); allow write: if manager(); }
-    match /events/{id} { allow read: if active(); allow write: if manager(); }
-    match /reports/{id} { allow read: if active(); allow write: if manager(); }
-    match /points/{id} { allow read: if active(); allow write: if manager(); }
-    match /discipline/{id} { allow read, write: if manager(); }
-    match /equipment/{id} { allow read, write: if manager(); }
-    match /history/{id} {
-      allow read: if leader();
-      allow create: if manager();
-      allow update, delete: if false;
+    // V4.1 sem Firebase Authentication: o controle de acesso acontece no painel.
+    // Publique estas regras para o primeiro teste. Para produção pública,
+    // migre a autenticação para um backend seguro antes de divulgar o link.
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

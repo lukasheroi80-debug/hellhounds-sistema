@@ -1,34 +1,17 @@
-# Hellhounds — Central de Comando v4
+# Hellhounds Sistema V4.1 — acesso por passaporte
 
-Painel estático para Vercel, usando Firebase Authentication e Firestore.
+Esta versão remove o login por e-mail e não usa Firebase Authentication.
 
-## Login correto
+## Primeiro uso
 
-O membro nunca digita e-mail. O site transforma o passaporte em um e-mail técnico interno, por exemplo `1234@hellhounds.local`.
+1. Substitua os arquivos do GitHub pelos arquivos deste pacote.
+2. No Firebase, abra Firestore Database > Rules.
+3. Cole o conteúdo de `firestore.rules` e clique em **Publish**.
+4. Abra o site. A primeira tela será **Criar primeiro Líder**.
+5. Informe seu nome, seu passaporte e crie sua senha. Você entrará imediatamente.
+6. Dentro do painel, abra **Acessos** e autorize os passaportes dos membros.
+7. Cada membro usa **Primeiro acesso** para criar a própria senha.
 
-### Primeiro acesso de um membro
+## Observação de segurança
 
-1. O Líder abre **Acessos → Autorizar passaporte**.
-2. Informa nome, passaporte da cidade e cargo no painel.
-3. O membro abre **Primeiro acesso? Criar minha senha**.
-4. Digita o passaporte autorizado e cria a própria senha.
-5. Nos próximos acessos, usa passaporte + senha criada.
-
-## Primeiro Líder
-
-A primeira conta que conseguir entrar e ainda não tiver perfil será configurada como Líder. Para aproveitar a conta já criada no Firebase, entre com o passaporte correspondente e a senha conhecida. Depois disso, o painel passa a exigir autorizações.
-
-## Instalação
-
-1. Substitua os arquivos do repositório pelos desta pasta.
-2. No Firebase, confirme **Authentication → Sign-in method → Email/Password** ativado.
-3. Em **Firestore Database → Rules**, cole todo o conteúdo de `firestore.rules` e clique em **Publicar**.
-4. Faça o commit no GitHub. A Vercel fará o deploy automaticamente.
-
-## Painéis
-
-Dashboard, membros, missões, parcerias, avisos, calendário, relatórios, pontos/ranking, disciplina, equipamentos, acessos e histórico.
-
-## Observação sobre senha
-
-Cada usuário pode alterar a própria senha pelo botão **Alterar senha**. Como este projeto é somente front-end, o Líder pode bloquear uma conta, mas não pode trocar diretamente a senha de outra pessoa sem um backend administrativo. Isso evita uma falsa função de “reset” que não funcionaria.
+Esta é uma versão simples para colocar o painel em funcionamento sem o problema do Firebase Authentication. As senhas são protegidas com PBKDF2, mas as regras do Firestore ficam abertas porque não existe autenticação de servidor. Não divulgue o endereço publicamente até migrar o login para um backend seguro.
