@@ -1,65 +1,36 @@
-# Sistema Hellhounds
+# Hellhounds Sistema v2
 
-Painel web responsivo para gerenciar parcerias da facção Hellhounds.
+Painel web com Firebase Authentication, Firestore, cargos e permissões.
 
-## O que já funciona
+## Primeiro acesso
 
-- Tela de login no estilo do site de referência.
-- Painel preto e roxo.
-- Cadastro, edição e exclusão de parcerias.
-- Pesquisa e filtro por categoria.
-- Botões para copiar Dark, senha e telefone.
-- Funcionamento no celular e no computador.
-- Dados iniciais das parcerias já cadastrados.
-- Publicação gratuita na Vercel.
+1. No Firebase Console, abra **Authentication > Usuários**.
+2. Clique em **Adicionar usuário**.
+3. Cadastre seu e-mail e uma senha com pelo menos 6 caracteres.
+4. Publique estes arquivos no GitHub/Vercel.
+5. Entre no site com essa conta.
+6. Como ainda não existe nenhum perfil em `users`, o primeiro login vira **Dono** automaticamente.
 
-## Testar no computador
+## Cargos
 
-Abra o arquivo `index.html` no navegador.
+- **Dono:** acesso total, usuários, cargos e histórico.
+- **Gerente:** gerencia membros, parcerias e avisos.
+- **Membro:** somente leitura.
 
-A tela de demonstração aceita qualquer ID e senha não vazios.
+## Segurança importante
 
-## Publicar na Vercel
+O Firestore foi criado em modo de teste. Depois do primeiro login, copie o conteúdo de `firestore.rules`, abra:
 
-1. Crie uma conta em https://vercel.com
-2. Crie uma conta em https://github.com
-3. No GitHub, crie um repositório chamado `hellhounds-sistema`.
-4. Envie todos os arquivos desta pasta para o repositório.
-5. Na Vercel, clique em **Add New > Project**.
-6. Selecione o repositório `hellhounds-sistema`.
-7. Clique em **Deploy**.
+**Firebase > Firestore Database > Regras**
 
-A Vercel vai gerar um link semelhante a:
+Cole as regras e clique em **Publicar**.
 
-`https://hellhounds-sistema.vercel.app`
+## Arquivos
 
-## Fazer todos verem e editarem os mesmos dados
-
-Sem banco de dados, cada navegador salva sua própria cópia. Para os dados ficarem
-compartilhados em tempo real, conecte o Firebase:
-
-1. Entre em https://console.firebase.google.com
-2. Clique em **Adicionar projeto**.
-3. Crie um aplicativo Web dentro do projeto.
-4. Ative **Realtime Database**.
-5. Durante os testes, use estas regras:
-
-```json
-{
-  "rules": {
-    ".read": true,
-    ".write": true
-  }
-}
-```
-
-6. Copie a configuração Web fornecida pelo Firebase.
-7. Abra `firebase-config.js`.
-8. Substitua `null` pela configuração copiada, seguindo o exemplo já presente.
-9. Envie novamente o arquivo para o GitHub. A Vercel atualizará o site.
-
-## Atenção sobre segurança
-
-As regras abertas são adequadas apenas para teste. Para uso definitivo, configure
-Firebase Authentication e regras que permitam edição apenas para líderes e gerentes.
-A tela de login atual é visual e não substitui autenticação segura no servidor.
+- `index.html`: estrutura do site.
+- `styles.css`: visual preto/roxo.
+- `app.js`: autenticação, dados e permissões.
+- `firebase-config.js`: conexão com o projeto Firebase.
+- `firestore.rules`: regras de segurança.
+- `hellhounds-logo.jpeg`: identidade visual.
+- `vercel.json`: configuração da Vercel.

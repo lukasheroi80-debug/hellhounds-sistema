@@ -1,191 +1,236 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b0710" />
-  <title>Hellhounds — Sistema de Parcerias</title>
+  <meta name="theme-color" content="#0a0710" />
+  <title>Hellhounds | Painel de Gestão</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="bg-grid"></div>
-  <div class="glow glow-a"></div>
-  <div class="glow glow-b"></div>
+  <div id="toast" class="toast"></div>
 
-  <main id="loginView" class="login-shell">
-    <section class="hero-panel">
-      <div class="brand-line">
-        <div class="wolf-mark">🐺</div>
+  <section id="loginView" class="login-shell">
+    <div class="login-art">
+      <div class="art-overlay"></div>
+      <img src="hellhounds-logo.jpeg" alt="Logo Hellhounds">
+      <div class="art-copy">
+        <span class="eyebrow">SISTEMA INTERNO</span>
+        <h1>HELLHOUNDS</h1>
+        <p>Gestão de equipe, parcerias, avisos e permissões em um só lugar.</p>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <form id="loginForm" class="login-card">
+        <div class="mobile-brand">
+          <img src="hellhounds-logo.jpeg" alt="">
+          <strong>HELLHOUNDS</strong>
+        </div>
+        <span class="eyebrow">ACESSO RESTRITO</span>
+        <h2>Entrar no painel</h2>
+        <p class="muted">Use o e-mail e a senha cadastrados pela liderança.</p>
+
+        <label>E-mail
+          <input id="loginEmail" type="email" placeholder="seuemail@exemplo.com" required />
+        </label>
+
+        <label>Senha
+          <input id="loginPassword" type="password" placeholder="••••••••" minlength="6" required />
+        </label>
+
+        <button class="primary-btn" type="submit">Acessar sistema</button>
+        <button class="link-btn" id="forgotPasswordBtn" type="button">Esqueci minha senha</button>
+        <p id="loginError" class="form-error"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="appView" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="hellhounds-logo.jpeg" alt="Hellhounds">
         <div>
-          <span class="eyebrow">HELLHOUNDS</span>
-          <h1>SISTEMA DE<br><span>PARCERIAS</span></h1>
+          <strong>HELLHOUNDS</strong>
+          <small>Painel de Gestão</small>
         </div>
       </div>
 
-      <p class="hero-copy">
-        Controle rápido de contatos, canais Dark, senhas e serviços das organizações parceiras.
-      </p>
-
-      <div class="feature-row">
-        <article><b>⚡</b><span>Consulta rápida</span></article>
-        <article><b>📋</b><span>Copiar com um clique</span></article>
-        <article><b>🔄</b><span>Atualização compartilhada</span></article>
-      </div>
-    </section>
-
-    <section class="login-card">
-      <div class="lock-icon">🔐</div>
-      <p class="eyebrow">ACESSO RESTRITO</p>
-      <h2>Sistema Interno</h2>
-      <p class="muted">Entre com seu ID e senha para acessar o painel.</p>
-
-      <form id="loginForm">
-        <label>ID / PASSAPORTE
-          <input id="loginId" type="text" placeholder="Ex.: 1234" required />
-        </label>
-        <label>SENHA
-          <div class="password-wrap">
-            <input id="loginPassword" type="password" placeholder="••••••••" required />
-            <button id="togglePassword" type="button" class="icon-btn" aria-label="Mostrar senha">👁️</button>
-          </div>
-        </label>
-        <button class="primary-btn" type="submit">Acessar Sistema</button>
-      </form>
-
-      <p class="login-note">Acesso de demonstração: qualquer ID e senha não vazios.</p>
-    </section>
-  </main>
-
-  <main id="appView" class="app-shell hidden">
-    <aside class="sidebar">
-      <div class="side-brand">
-        <div class="wolf-mark small">🐺</div>
-        <div><strong>HELLHOUNDS</strong><span>Central Interna</span></div>
-      </div>
-
-      <nav>
-        <button class="nav-item active" data-section="dashboard">⌂ <span>Visão geral</span></button>
-        <button class="nav-item" data-section="parcerias">🤝 <span>Parcerias</span></button>
-        <button class="nav-item" data-section="avisos">📢 <span>Avisos</span></button>
+      <nav id="mainNav">
+        <button class="nav-item active" data-page="dashboard">⌂ <span>Dashboard</span></button>
+        <button class="nav-item" data-page="members">♟ <span>Membros</span></button>
+        <button class="nav-item" data-page="partnerships">◇ <span>Parcerias</span></button>
+        <button class="nav-item" data-page="notices">✦ <span>Avisos</span></button>
+        <button class="nav-item admin-only" data-page="users">⚙ <span>Usuários</span></button>
+        <button class="nav-item admin-only" data-page="history">☷ <span>Histórico</span></button>
       </nav>
 
-      <div class="side-bottom">
-        <div class="sync-box">
-          <span id="syncDot" class="sync-dot"></span>
-          <div><b id="syncLabel">Modo local</b><small id="syncDetail">Dados salvos neste navegador</small></div>
+      <div class="sidebar-footer">
+        <div class="user-mini">
+          <div class="avatar" id="userInitial">H</div>
+          <div>
+            <strong id="sidebarUserName">Usuário</strong>
+            <small id="sidebarUserRole">Membro</small>
+          </div>
         </div>
-        <button id="logoutBtn" class="ghost-btn">Sair</button>
+        <button id="logoutBtn" class="secondary-btn">Sair</button>
       </div>
     </aside>
 
-    <section class="content">
+    <main class="main">
       <header class="topbar">
         <button id="menuBtn" class="menu-btn">☰</button>
         <div>
-          <p class="eyebrow">PAINEL HELLHOUNDS</p>
-          <h2 id="pageTitle">Visão geral</h2>
+          <span class="eyebrow">CENTRAL HELLHOUNDS</span>
+          <h2 id="pageTitle">Dashboard</h2>
         </div>
-        <div class="user-pill">🐺 <span id="userIdLabel">Membro</span></div>
+        <div class="topbar-user">
+          <span id="topUserName">Usuário</span>
+          <span id="topUserBadge" class="role-badge">Membro</span>
+        </div>
       </header>
 
-      <section id="dashboardSection" class="page-section">
-        <div class="welcome-card">
+      <div id="bootstrapBanner" class="bootstrap-banner hidden">
+        <strong>Primeiro acesso detectado.</strong>
+        <span>Esta conta foi definida como Dono do sistema.</span>
+      </div>
+
+      <section id="dashboardPage" class="page active">
+        <div class="hero-card">
           <div>
-            <p class="eyebrow">CENTRAL OPERACIONAL</p>
-            <h3>Bem-vindo ao sistema Hellhounds.</h3>
-            <p>Consulte e atualize as informações das organizações parceiras.</p>
+            <span class="eyebrow">VISÃO GERAL</span>
+            <h1>Bem-vindo, <span id="welcomeName">líder</span>.</h1>
+            <p>Gerencie a operação da Hellhounds com controle e segurança.</p>
           </div>
-          <button class="primary-btn fit" data-go="parcerias">Abrir parcerias</button>
+          <img src="hellhounds-logo.jpeg" alt="">
         </div>
 
         <div class="stats-grid">
-          <article class="stat-card"><span>🤝</span><div><b id="statTotal">0</b><small>Parcerias ativas</small></div></article>
-          <article class="stat-card"><span>🔫</span><div><b id="statArmas">0</b><small>Fornecedores de armas</small></div></article>
-          <article class="stat-card"><span>📞</span><div><b id="statContatos">0</b><small>Contatos disponíveis</small></div></article>
-          <article class="stat-card"><span>🕒</span><div><b id="statUpdate">Agora</b><small>Última atualização</small></div></article>
+          <article class="stat-card"><span>Membros</span><strong id="membersCount">0</strong><small>cadastrados</small></article>
+          <article class="stat-card"><span>Parcerias</span><strong id="partnershipsCount">0</strong><small>ativas</small></article>
+          <article class="stat-card"><span>Avisos</span><strong id="noticesCount">0</strong><small>publicados</small></article>
+          <article class="stat-card"><span>Usuários</span><strong id="usersCount">0</strong><small>com acesso</small></article>
         </div>
 
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel-header"><div><span class="eyebrow">RECENTES</span><h3>Últimos avisos</h3></div></div>
+            <div id="recentNotices" class="list"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><div><span class="eyebrow">ATIVIDADE</span><h3>Últimas alterações</h3></div></div>
+            <div id="recentHistory" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="membersPage" class="page">
         <div class="panel">
-          <div class="panel-head">
-            <div><p class="eyebrow">RESUMO</p><h3>Parcerias recentes</h3></div>
-            <button class="text-btn" data-go="parcerias">Ver todas →</button>
+          <div class="panel-header">
+            <div><span class="eyebrow">EQUIPE</span><h3>Gestão de membros</h3></div>
+            <button class="primary-btn manager-only" data-open-modal="memberModal">Adicionar membro</button>
           </div>
-          <div id="recentList" class="recent-list"></div>
+          <div class="toolbar"><input id="memberSearch" placeholder="Pesquisar nome, passaporte ou cargo..."></div>
+          <div id="membersTable" class="table-wrap"></div>
         </div>
       </section>
 
-      <section id="parceriasSection" class="page-section hidden">
-        <div class="toolbar">
-          <div class="search-wrap">🔎<input id="searchInput" placeholder="Pesquisar organização, serviço ou Dark..." /></div>
-          <select id="categoryFilter">
-            <option value="">Todas as categorias</option>
-            <option>Lavagem</option>
-            <option>Contrabando</option>
-            <option>Armas</option>
-            <option>Colete e munições</option>
-            <option>Outros</option>
-          </select>
-          <button id="addBtn" class="primary-btn fit">＋ Nova parceria</button>
-        </div>
-        <div id="partnershipGrid" class="cards-grid"></div>
-        <div id="emptyState" class="empty-state hidden">Nenhuma parceria encontrada.</div>
-      </section>
-
-      <section id="avisosSection" class="page-section hidden">
-        <div class="panel notice-panel">
-          <p class="eyebrow">COMUNICADO</p>
-          <h3>Informações importantes</h3>
-          <div class="notice">
-            <span>⚠️</span>
-            <p>Confira sempre os dados antes de iniciar uma negociação. Senhas e contatos podem mudar.</p>
+      <section id="partnershipsPage" class="page">
+        <div class="panel">
+          <div class="panel-header">
+            <div><span class="eyebrow">CONTATOS</span><h3>Gestão de parcerias</h3></div>
+            <button class="primary-btn manager-only" data-open-modal="partnershipModal">Nova parceria</button>
           </div>
-          <div class="notice">
-            <span>📦</span>
-            <p>Para cargas da Bratva, utilize apenas o contato informado no sistema enquanto houver risco de assaltos.</p>
-          </div>
+          <div class="toolbar"><input id="partnershipSearch" placeholder="Pesquisar organização ou responsável..."></div>
+          <div id="partnershipsTable" class="table-wrap"></div>
         </div>
       </section>
-    </section>
-  </main>
 
-  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div><p class="eyebrow">GERENCIAR</p><h3 id="modalTitle">Nova parceria</h3></div>
-        <button id="closeModal" class="icon-btn">✕</button>
+      <section id="noticesPage" class="page">
+        <div class="panel">
+          <div class="panel-header">
+            <div><span class="eyebrow">COMUNICADOS</span><h3>Avisos internos</h3></div>
+            <button class="primary-btn manager-only" data-open-modal="noticeModal">Novo aviso</button>
+          </div>
+          <div id="noticesList" class="notice-grid"></div>
+        </div>
+      </section>
+
+      <section id="usersPage" class="page">
+        <div class="panel">
+          <div class="panel-header">
+            <div><span class="eyebrow">ADMINISTRAÇÃO</span><h3>Usuários e permissões</h3></div>
+            <button class="primary-btn" data-open-modal="userModal">Criar usuário</button>
+          </div>
+          <div class="info-box">Dono tem acesso total. Gerente pode editar conteúdos. Membro possui acesso de consulta.</div>
+          <div id="usersTable" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <section id="historyPage" class="page">
+        <div class="panel">
+          <div class="panel-header"><div><span class="eyebrow">AUDITORIA</span><h3>Histórico de alterações</h3></div></div>
+          <div id="historyList" class="list"></div>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <dialog id="memberModal" class="modal">
+    <form id="memberForm" method="dialog">
+      <div class="modal-head"><h3 id="memberModalTitle">Adicionar membro</h3><button type="button" data-close-modal>×</button></div>
+      <input type="hidden" id="memberId">
+      <div class="form-grid">
+        <label>Nome<input id="memberName" required></label>
+        <label>Passaporte<input id="memberPassport" required></label>
+        <label>Cargo<input id="memberRank" required placeholder="Ex.: Gerente"></label>
+        <label>Status<select id="memberStatus"><option>Ativo</option><option>Inativo</option><option>Afastado</option></select></label>
       </div>
-      <form id="partnershipForm">
-        <input id="editId" type="hidden" />
-        <div class="form-grid">
-          <label>ORGANIZAÇÃO<input id="name" required placeholder="Ex.: Bluekills" /></label>
-          <label>CATEGORIA
-            <select id="category" required>
-              <option>Lavagem</option><option>Contrabando</option><option>Armas</option>
-              <option>Colete e munições</option><option>Outros</option>
-            </select>
-          </label>
-          <label>CANAL DARK<input id="dark" placeholder="Ex.: bk-hh" /></label>
-          <label>SENHA<input id="password" placeholder="Ex.: 147" /></label>
-          <label>TELEFONE<input id="phone" placeholder="Ex.: 497-031" /></label>
-          <label>STATUS
-            <select id="status"><option>Ativa</option><option>Pausada</option></select>
-          </label>
-        </div>
-        <label>OBSERVAÇÃO<textarea id="notes" rows="3" placeholder="Informações importantes..."></textarea></label>
-        <div class="modal-actions">
-          <button type="button" id="cancelModal" class="ghost-btn">Cancelar</button>
-          <button type="submit" class="primary-btn fit">Salvar parceria</button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <label>Observações<textarea id="memberNotes" rows="3"></textarea></label>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Salvar</button></div>
+    </form>
+  </dialog>
 
-  <div id="toast" class="toast"></div>
+  <dialog id="partnershipModal" class="modal">
+    <form id="partnershipForm" method="dialog">
+      <div class="modal-head"><h3 id="partnershipModalTitle">Nova parceria</h3><button type="button" data-close-modal>×</button></div>
+      <input type="hidden" id="partnershipId">
+      <div class="form-grid">
+        <label>Organização<input id="partnerOrganization" required></label>
+        <label>Responsável<input id="partnerResponsible" required></label>
+        <label>Discord / Contato<input id="partnerDiscord"></label>
+        <label>Status<select id="partnerStatus"><option>Ativa</option><option>Pendente</option><option>Encerrada</option></select></label>
+      </div>
+      <label>Observações<textarea id="partnerNotes" rows="3"></textarea></label>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Salvar</button></div>
+    </form>
+  </dialog>
 
-  <script src="firebase-config.js"></script>
+  <dialog id="noticeModal" class="modal">
+    <form id="noticeForm" method="dialog">
+      <div class="modal-head"><h3>Novo aviso</h3><button type="button" data-close-modal>×</button></div>
+      <label>Título<input id="noticeTitle" required></label>
+      <label>Mensagem<textarea id="noticeMessage" rows="6" required></textarea></label>
+      <label>Prioridade<select id="noticePriority"><option>Normal</option><option>Importante</option><option>Urgente</option></select></label>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Publicar</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="userModal" class="modal">
+    <form id="userForm" method="dialog">
+      <div class="modal-head"><h3>Criar usuário</h3><button type="button" data-close-modal>×</button></div>
+      <div class="info-box">A senha deve ter pelo menos 6 caracteres. O usuário poderá trocá-la por recuperação de e-mail.</div>
+      <label>Nome<input id="newUserName" required></label>
+      <label>E-mail<input id="newUserEmail" type="email" required></label>
+      <label>Senha temporária<input id="newUserPassword" type="password" minlength="6" required></label>
+      <label>Cargo<select id="newUserRole"><option value="member">Membro</option><option value="manager">Gerente</option><option value="owner">Dono</option></select></label>
+      <div class="modal-actions"><button type="button" class="secondary-btn" data-close-modal>Cancelar</button><button class="primary-btn" type="submit">Criar acesso</button></div>
+    </form>
+  </dialog>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>

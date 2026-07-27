@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function active() {
+      return signedIn() && profile().active == true;
+    }
+    function manager() {
+      return active() && (profile().role == "manager" || profile().role == "owner");
+    }
+    function owner() {
+      return active() && profile().role == "owner";
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn() && (request.auth.uid == userId || owner());
+      allow read: if active();
+      allow update: if owner() || (request.auth.uid == userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.active == resource.data.active);
+      allow delete: if owner() && request.auth.uid != userId;
+    }
+
+    match /members/{docId} {
+      allow read: if active();
+      allow create, update, delete: if manager();
+    }
+
+    match /partnerships/{docId} {
+      allow read: if active();
+      allow create, update, delete: if manager();
+    }
+
+    match /notices/{docId} {
+      allow read: if active();
+      allow create, update, delete: if manager();
+    }
+
+    match /history/{docId} {
+      allow read: if owner();
+      allow create: if manager();
+      allow update, delete: if false;
+    }
+  }
+}
