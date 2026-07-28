@@ -35,3 +35,6 @@ Na Vercel, abra **Settings → Environment Variables** e crie:
 - `DISCORD_META_WEBHOOK_URL`: cole o webhook do canal de Metas Concluídas.
 
 Depois, faça um novo deploy. O webhook não fica exposto no código do navegador.
+
+## V7 Remaster
+Refinamento visual preservando a identidade, a logo, a estrutura, o Firebase e todas as funções existentes. Inclui acabamento premium em preto e roxo, sombras, glow discreto, texturas, melhor responsividade e melhorias visuais nas áreas de Baú e Metas.
