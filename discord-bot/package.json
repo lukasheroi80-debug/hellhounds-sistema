@@ -1,0 +1,14 @@
+{
+  "name": "hellhounds-discord-bot",
+  "version": "1.0.0",
+  "description": "Bot oficial da HellHounds",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.7",
+    "firebase-admin": "^13.0.2"
+  }
+}
